@@ -1,0 +1,5 @@
+Allocation工具使用
+autoreleasePool优化内存
+lazy load优化内存
+NSCache优化内存
+NSPurgableData优化内存
