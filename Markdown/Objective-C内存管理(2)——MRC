@@ -1,0 +1,19 @@
+# Objective-C内存管理——MRC
+## MRC简介
+
+## NSObject对MRC的支持
+#### retain
+#### release
+#### autorelease
+#### retainCount
+
+## MRC下的内存修饰符
+#### assign
+#### retain
+#### 属性的getter和setter实现
+
+## MRC下的命名规范
+
+## 使用NSAutoreleasePool
+
+## 总结
