@@ -1,0 +1,6 @@
+NSUserDefaults
+NSPropertyListSerialization
+NSDictionary/NSArray/NSString write方法
+keychain
+UIPasteboard
+NSFileManager

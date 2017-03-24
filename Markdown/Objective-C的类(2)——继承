@@ -1,0 +1,6 @@
+父类属性读写权限的重写
+父类属性修饰符修改
+掌握super
+重写或增加init方法，需要重写所有的init方法，把init方法分成designate和convinience
+重写dealloc
+重写其他特殊方法(loadView，layoutSubViews等)

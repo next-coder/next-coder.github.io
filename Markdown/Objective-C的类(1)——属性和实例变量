@@ -1,0 +1,201 @@
+# Objective-C的类——属性和实例变量
+<font color="#ff0000">注意：本文章主要介绍Objective-C的细节和高级功能，阅读本文需要有一定的Objective-C编程基础。</font>
+## 属性(Property)
+Objective-C的属性，相信大家都有一定的了解和使用基础。这里主要介绍属性的深入知识：
+#### 属性的修饰符
+##### 原子操作修饰符
+- nonatomic &nbsp;&nbsp;&nbsp;&nbsp;非原子属性，即此属性非线程安全
+- atomic(默认值) &nbsp;&nbsp;&nbsp;&nbsp;原子属性，即此属性线程安全
+
+##### 内存修饰符(mrc)
+- retain &nbsp;&nbsp;&nbsp;&nbsp;修饰对象，强引用指向对象(即指向对象的引用计数+1)；不能用于基本类型
+- copy &nbsp;&nbsp;&nbsp;&nbsp;修饰对象，拷贝指向对象；不能用于基本类型
+- assign(默认) &nbsp;&nbsp;&nbsp;&nbsp;修饰基本类型
+- assign &nbsp;&nbsp;&nbsp;&nbsp;修饰对象，表示不强引用指向对象(即指向对象的引用计数不变)，
+指向对象释放后，属性不会自动置空
+
+##### 内存修饰符(arc)
+- strong(默认) &nbsp;&nbsp;&nbsp;&nbsp;修饰对象，强引用指向对象(即指向对象的引用计数+1)；不能用于基本类型；属性为对象类型时，默认为strong
+- copy &nbsp;&nbsp;&nbsp;&nbsp;修饰对象，拷贝指向对象；不能用于基本类型
+- weak &nbsp;&nbsp;&nbsp;&nbsp;修饰对象，弱引用指向对象(即指向对象的引用计数不变)，指向对象释放后，属性自动置空；不能用于基本类型
+- unsafe_unretained &nbsp;&nbsp;&nbsp;&nbsp;修饰对象，弱引用，指向对象释放后，属性不会自动置空
+- assign(默认) &nbsp;&nbsp;&nbsp;&nbsp;修饰基本类型；属性为基本类型时，默认为assign
+- assign &nbsp;&nbsp;&nbsp;&nbsp;修饰对象，同_unsafe_unretained
+
+##### 读写权限修饰符
+- readonly &nbsp;&nbsp;&nbsp;&nbsp;属性为只读，不会生成setter
+- readwrite(默认) &nbsp;&nbsp;&nbsp;&nbsp;属性可读写
+
+##### getter和setter修饰符
+- getter &nbsp;&nbsp;&nbsp;&nbsp;修改默认的getter方法名，用法getter=getXXX
+- setter &nbsp;&nbsp;&nbsp;&nbsp;修改默认的setter方法名，用法setter=setXXX:
+
+##### 属性修饰符实例：
+```
+
+// 所有类型的修饰符都标注出来
+@property (nonatomic, strong, readonly, getter=getObj, setter=setObj) id obj;
+
+// 只标注原子操作，其他的全部取默认值
+@property (nonatomic) id obj1;
+
+```
+
+注意：每种类型的修饰符一个属性只能有一个。
+
+## 实例变量(instance variable)
+以我以前的面试经验，开发者对Objective-C的实例变量了解还是比较欠缺，这里详细介绍一下实例变量。
+
+### 什么是实例变量
+了解面向对象的开发者都知道，类分为两部分，一部分是数据，另一部分是方法。
+可能在大家的认知里，Objective-C的属性是类的数据部分，没有实例变量一说。
+但事实并非如此，在Objective-C中也有实例变量，并且实例变量才是类的数据部分。
+
+Objective-C的实例变量，是对象用来存储数据的类变量。
+
+### 实例变量的声明
+上面看了实例变量的使用，大家对实例变量有了一定的了解，那实例变量如何声明呢？
+下面我们来看一段代码：
+
+```
+@interface ClassA: NSObject {
+  // 声明一个int型的实例变量
+  int _aProperty;
+}
+@end
+```
+
+上面的接口声明中，在类声明后面增加一个大括号，大括号里面就是就声明一个整型的实例变量_aProperty。
+Objective-C的实例变量有访问权限，分别是：public、protected和private。
+##### public 
+公开的实例变量，任何地方均可以访问。在类内部访问时，直接使用变量名即可。在类外部访问时，需要使用->语法。具体请见下面的实例。
+##### protected
+本类和子类可以访问的实例变量。直接使用变量名访问即可。未声明权限时，默认为protected
+##### private
+私有实例变量。只在本类中可以访问。直接使用变量名访问即可。平时开发过程中，应当尽量使用私有实例变量，以更好的对类进行封装。
+
+下面代码实现了不同访问权限实例变量的声明：
+
+```
+@interface ClassA: NSObject {
+
+  // 不声明访问权限，默认为protected
+  int _defaultProtectedInt;
+  NSString *_defaultProtectedString;
+
+  // 声明不同访问权限的实例变量
+  @public
+  int _publicInt;
+  NSString *_publicString;
+  
+  @protected
+  int _protectedInt;
+  NSString *_proctectedString;
+  
+  @private 
+  int _privateInt;
+  NSString *_privateString;
+}
+@end
+
+```
+
+### 实例变量的使用
+
+##### 类内部使用实例变量
+
+在类的内部使用实例变量，与使用普通变量没有差别，直接用变量名即可。只是实例变量的作用域是整个类。
+看了实例变量的使用，相信大家对实例变量会有一种豁然开朗的感受。
+因为大家在开发中，都会或多或少的使用实例变量，只是很多时候没有在意。
+
+下面一段代码显示了各权限的实例变量在类内部的使用方式，直接使用变量名：
+
+```
+@implemetation ClassA 
+
+- (instancetype)init {
+	if (self = [super init]) {
+		// 类内部使用实例变量，直接使用变量名即可
+		_publicInt = 10;
+		_publicString = @"aaa";
+		
+		_protectedInt = 20;
+		_proctectedString = @"bbb";
+		
+		_privateInt = 30;
+		_privateString = @"ccc";
+		
+		NSLog(@"public int is %d", _publicInt);
+		NSLog(@"public String is %@", _publicString);
+		NSLog(@"protected int is %d", _protectedInt);
+		NSLog(@"protected String is %@", _protectedString);
+		NSLog(@"private int is %d", _privateInt);
+		NSLog(@"private String is %@", _privateString);
+	}
+	return self;
+}
+
+@end
+
+```
+
+##### 类外部使用实例变量
+类外部访问实例变量，由于要跟对象关联起来，故需要使用obj->instanceVariable的形式来访问：
+
+```
+@interface ClassB: NSObject 
+@end
+
+@implementation ClassB
+
+- (void)visitPublicInstanceVariable {
+	ClassA *a = [[ClassA alloc] init];
+	// 类外部公开实例变量，采用obj->instanceVariable的方式访问
+	NSLog(@"public int is %d", a->_publicInt);
+	NSLog(@"public String is %@", a->_publicString);
+	
+	// 以下访问都是错误的，因为访问了不能访问的实例变量
+	// NSLog(@"protected int is %d", a->_protectedInt);
+	// NSLog(@"protected String is %@", a->_protectedString);
+	// NSLog(@"private int is %d", a->_privateInt);
+	// NSLog(@"private String is %@", a->_privateString);
+}
+
+@end
+```
+
+### 更多关于实例变量
+##### 类扩展中声明实例变量
+除了上面介绍的，在类声明中添加实例变量，还可以在类扩展中声明实例变量。如下：
+
+```
+@interface ClassA () {
+	int _extInt;
+}
+@end
+```
+类扩展中的实例变量权限和类声明中的权限一致。只是一般类扩展都和类实现写在一起，导致其他地方无法import类扩展，故只能在扩展所在的文件中访问公开实例变量。详细请参考本文章实例代码。
+
+##### 类实现中声明实例变量
+类实现中，也可以声明实例变量，并且也有权限管理，只是情况与类扩展一样，这些实例变量无法被引入到其他代码文件中，故公开实例变量，只能在本文件中访问。
+
+```
+@implementation ClassA {
+	// 类实现中声明实例变量
+	int _impInt;
+}
+
+@end
+```
+
+### 实例变量总结
+以上详细介绍了实例变量，相信大家对实例变量有一定的了解。但是，读者可能会困惑，上面介绍的实例变量，不都是属性的功能吗？既然已经有属性，为何还要实例变量？属性和实例变量到底有什么样的关系呢？下面我们就来解答这些问题。
+
+
+## 属性和实例变量的关系
+
+什么是属性？属性的写法，代码示例
+属性的修饰符
+什么是示例变量？示例变量的写法，代码示例，实例变量如何访问(public实例变量在类外部如何访问)
+实例变量的内存管理
+属性和实例变量的关系
