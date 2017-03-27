@@ -44,7 +44,27 @@ Objective-C的属性，相信大家都有一定的了解和使用基础。这里
 注意：每种类型的修饰符一个属性只能有一个。
 
 ### self.的使用
+在开发中，大部分开发者使用属性的时候，都是采用self.property的形式，很少使用getter或setter，如下：
 
+```
+- (NSString *)doSomething {
+	// self.的方式给属性赋值
+	self.propertyString = @"xxx";
+	// self.的方式获取属性值
+	return self.propertyString;
+}
+```
+以上代码中，我们采用self.的形式给属性赋值和获取属性值。那这种方式与使用getter、setter的方式有什么区别呢？
+本质上并没有区别，self.的形式，最终是转化成getter或setter来实现的。只是开发中一般建议使用self.的形式，使代码看起来更加简单整洁。即上面的代码，和下面的代码是等价的：
+
+```
+- (NSString *)doSomething {
+	// setter的方式赋值
+	[self setPropertyString:@"xxx"];
+	// getter的方式获取属性值
+	return [self propertyString];
+}
+```
 
 ## 实例变量(instance variable)
 以我以前的面试经验，开发者对Objective-C的实例变量了解还是比较欠缺，这里详细介绍一下实例变量。
