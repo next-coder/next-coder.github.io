@@ -1,8 +1,8 @@
 # Objective-C的类——属性和实例变量
-<font color="#ff0000">注意：本文章主要介绍Objective-C的细节和高级功能，阅读本文需要有一定的Objective-C编程基础。</font>
+<font color="#ff0000">注意：本文章主要介绍Objective-C的细节和高级功能，阅读本文需要一定的Objective-C编程基础。</font>
 ## 属性(Property)
 Objective-C的属性，相信大家都有一定的了解和使用基础。这里主要介绍属性的深入知识：
-#### 属性的修饰符
+### 属性的修饰符
 ##### 原子操作修饰符
 - nonatomic &nbsp;&nbsp;&nbsp;&nbsp;非原子属性，即此属性非线程安全
 - atomic(默认值) &nbsp;&nbsp;&nbsp;&nbsp;原子属性，即此属性线程安全
@@ -42,6 +42,9 @@ Objective-C的属性，相信大家都有一定的了解和使用基础。这里
 ```
 
 注意：每种类型的修饰符一个属性只能有一个。
+
+### self.的使用
+
 
 ## 实例变量(instance variable)
 以我以前的面试经验，开发者对Objective-C的实例变量了解还是比较欠缺，这里详细介绍一下实例变量。
@@ -99,6 +102,8 @@ Objective-C的实例变量有访问权限，分别是：public、protected和pri
 @end
 
 ```
+
+<font color='red'>注意：尽管实例变量可以有public权限，但在开发中应禁止使用public权限的实例变量。因为public权限的实例变量会大大破坏类的封装性。甚至protected权限的实例变量也应当避免使用。</font>
 
 ### 实例变量的使用
 
@@ -194,10 +199,106 @@ Objective-C的实例变量有访问权限，分别是：public、protected和pri
 
 ## 属性和实例变量的关系
 
-前面说了，实例变量是类中的数据部分。而属性的作用是告诉编译器如何生成实例变量及getter和setter。即属性本身不是数据部分，只是实例变量的一个包装。
+前面说了，实例变量是类中的数据部分。而属性的作用是告诉编译器如何生成实例变量及getter和setter。即属性本身不是数据部分，只是实例变量的一个包装。下面以两种方式来理解属性是实例变量的一个包装：
 
-什么是属性？属性的写法，代码示例
-属性的修饰符
-什么是示例变量？示例变量的写法，代码示例，实例变量如何访问(public实例变量在类外部如何访问)
-实例变量的内存管理
-属性和实例变量的关系
+##### 从早期的代码实现来看属性和实例变量的关系
+我们来看看下面一段代码：
+
+```
+// 声明类ClassC
+// 类中有一个属性propertyString
+@interface ClassC: NSObject
+
+@property (nonatomic, copy) NSString *propertyString;
+
+@end
+
+// 声明ClassC的扩展，扩展中有一个实例变量_propertyString
+@interface ClassC () {
+	NSString *_propertyString;
+}
+
+@end
+
+// 类实现
+@implementation ClassC 
+
+// 把属性propertyString和实例变量propertyString关联起来
+@synthesize propertyString = _propertyString;
+
+// some more code...
+
+@end
+
+```
+上面的代码中，类ClassC中声明了一个属性propertyString和一个实例变量\_propertyString。
+在类的实现中，有一句@synthesize的关联代码，把属性和实例变量关联起来。
+这个关联的目的就是，使开发者通过使用属性propertyString，来操作实例变量\_propertyString。
+比如，设置属性propertyString的值，本质是设置实例变量\_propertyString的值。获取属性propertyString的值，本质是获取实例变量\_propertyString的值。
+
+上面的这段代码中，属性、实例变量和synthesize，在早期的Objective-C开发中，是需要开发者自己来写的。而现在的开发中，只需要声明属性即可，其他的都交给编译器来实现了。
+
+##### 从模拟编译器转化代码来看属性和实例变量的关系
+
+前面说了，属性是实例变量的一个包装，告诉编译器如何生成实例变量的getter和setter。下面我们来模拟一下编译器生成的代码：
+
+```
+@interface ClassD: NSObject
+
+// 声明属性propertyString
+@property (nonatomic, strong) NSString *propertyString;
+
+@end
+
+@implementation ClassD
+
+@end
+
+```
+
+以上代码是我们开发中经常实现的方式，声明一个属性即可。而编译器帮开发者做了很多操作，根据property来生成实例变量，以及实力变量的getter和setter。下面这段代码就是模拟编译器生成完成后的代码(mrc下的生成代码)：
+
+```
+@interface ClassD: NSObject
+
+// 声明属性propertyString
+@property (nonatomic, retain) NSString *propertyString;
+
+@end
+
+@implementation ClassD {
+	// 生成属性_propertyString，实例变量名是属性名前加'_'
+	NSString *_propertyString;
+}
+
+// 把实例变量与属性关联起来
+@synthesize propertyString = _propertyString;
+
+// 生成setter方法
+- (void)setPropertyString:(NSString *)propertyString {
+	NSString *tmp = _propertyString
+	_propertyString = [propertyString retain];
+	[tmp release];
+}
+
+// 生成getter方法
+- (NSString *)propertyString {
+	return _propertyString;
+}
+
+@end
+```
+
+从上面代码可以看出，编译器通过属性，是如何生成实例变量、setter和getter等。
+
+<font color='red'>注意：以上代码只是为了说明属性和实例变量的关系，模拟编译器生成代码，并不是编译器最终的生成结果。</font>
+
+## 总结
+上面介绍了属性、实例变量以及他们之间的关系，相信读者对属性和实例变量有一个深入的理解，开发中不在是蒙蒙浓浓的做开发了。便于更好的理解，开发者可以试着模拟一下编译器生成以下属性的代码：
+
+```
+@property (nonatomic, copy) NSString *property1;
+@property (nonatomic, strong, readonly) NSString *property2;
+@property (nonatomic, strong, getter=getProperty3Value, setter=setProperty3Value) NSString *property3;
+@property (nonatomic, weak) NSString *property4;
+```
